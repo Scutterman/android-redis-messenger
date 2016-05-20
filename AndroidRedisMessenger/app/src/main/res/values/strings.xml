@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">Android Redis Messenger</string>
+
+    <string-array name="random_messages">
+        <item>Hello World</item>
+        <item>You shall not pass</item>
+        <item>This too shall pass</item>
+        <item>The answer to the ultimate question, the question of life, the universe, and everything, is 42</item>
+        <item>You\'ll never know until you try</item>
+        <item>It\'s all fun and games until somebody gets hurt</item>
+        <item>You talkin\' to me?</item>
+        <item>Caffeine is a way of borrowing time that should rightly belong to your later life</item>
+    </string-array>
 </resources>

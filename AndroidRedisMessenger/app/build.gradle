@@ -26,5 +26,5 @@ dependencies {
     compile 'org.droidparts:droidparts-parent:2.9.5'
     compile 'org.droidparts:droidparts-support:2.9.5'
     compile 'org.droidparts:droidparts:2.9.5'
-    compile 'biz.paluch.redis:lettuce:4.1.2.Final'
+    compile 'redis.clients:jedis:2.8.1'
 }
