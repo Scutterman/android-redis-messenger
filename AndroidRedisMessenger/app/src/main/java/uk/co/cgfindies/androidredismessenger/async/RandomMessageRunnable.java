@@ -6,7 +6,10 @@ import org.droidparts.util.L;
 
 import java.util.Random;
 
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 import uk.co.cgfindies.androidredismessenger.R;
+import uk.co.cgfindies.androidredismessenger.storage.JedisProvider;
 
 /**
  * Provides a random message once every 20 seconds on average.
@@ -17,9 +20,8 @@ public class RandomMessageRunnable extends RepeatRunnable
     private static RandomMessageRunnable instance = null;
 
     private int maxRandom = 1000000;
-    private int percentChance = 20;
+    private int percentChance = 5;
     private int hitMax = (int)Math.ceil(maxRandom * percentChance * 0.01);
-    private int stringArrayLength = 0;
     private int arrayHitMax;
 
     private String[] values;
@@ -31,29 +33,9 @@ public class RandomMessageRunnable extends RepeatRunnable
      */
     private RandomMessageRunnable(Context ctx)
     {
-        super();
         values = ctx.getResources().getStringArray(R.array.random_messages);
-        stringArrayLength = values.length;
-        arrayHitMax = (int)Math.round(hitMax / stringArrayLength);
-    }
-
-    @Override
-    public void run()
-    {
-        Random random = new Random(System.currentTimeMillis());
-        int hit = random.nextInt(maxRandom);
-
-        if (hit <= hitMax)
-        {
-            int arrayIndex = (int)Math.round(hit / arrayHitMax);
-            try
-            {
-                L.w(values[arrayIndex]);
-            }
-            catch (ArrayIndexOutOfBoundsException e) {}
-        }
-
-        super.run();
+        int stringArrayLength = values.length;
+        arrayHitMax = Math.round(hitMax / stringArrayLength);
     }
 
     /**
@@ -70,5 +52,49 @@ public class RandomMessageRunnable extends RepeatRunnable
         }
 
         return instance;
+    }
+
+    /**
+     * Set a random message at random intervals
+     */
+    @Override
+    public void run()
+    {
+        Random random = new Random(System.currentTimeMillis());
+        int hit = random.nextInt(maxRandom);
+
+        if (hit <= hitMax)
+        {
+            Jedis jedis = null;
+
+            try
+            {
+                jedis = JedisProvider.getInstance().getJedisInstance();
+
+                int arrayIndex = Math.round(hit / arrayHitMax);
+                try
+                {
+                    jedis.lpush("messages", values[arrayIndex]);
+                }
+                catch (JedisConnectionException e) {
+                    L.w(e);
+                }
+            }
+            catch (ArrayIndexOutOfBoundsException e)
+            {
+                L.w("The random hit could not calculate an index for the string. Number generated was "
+                        + Integer.toString(hit)
+                        + " with an arrayHitMax of "
+                        + Integer.toString(arrayHitMax));
+            }
+            finally
+            {
+                if (jedis != null) {
+                    jedis.close();
+                }
+            }
+        }
+
+        super.run();
     }
 }
