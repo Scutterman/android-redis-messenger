@@ -51,7 +51,6 @@ public class GetMessageRunnable extends RepeatRunnable
 
         try
         {
-
             jedis = JedisProvider.getInstance().getJedisInstance();
             String message = jedis.lpop("messages");
             if (message != null && !message.equals(lastMessage) && messageInterface != null)

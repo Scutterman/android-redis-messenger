@@ -9,24 +9,51 @@ public class JedisProvider
 {
     private static JedisProvider instance;
     private Jedis jedis;
+    private int instancesProvided = 0;
 
     private JedisProvider() {}
 
     public Jedis getJedisInstance()
     {
-        if (jedis != null && jedis.isConnected())
+        if (jedis == null || !jedis.isConnected())
         {
-            return jedis;
+            instancesProvided = 0;
+            jedis = new Jedis("192.168.1.112");
         }
 
-        return jedis = new Jedis("192.168.1.112");
+        instancesProvided++;
+        return jedis;
+    }
+
+    public void closeIfLastInstance()
+    {
+        if (jedis == null)
+        {
+            instancesProvided = 0;
+        }
+        else if (instancesProvided == 1)
+        {
+            jedis.close();
+            jedis = null;
+            instancesProvided = 0;
+        }
+        else if (instancesProvided < 1)
+        {
+            instancesProvided = 0;
+            jedis.close();
+            jedis = null;
+        }
+        else if (instancesProvided > 1)
+        {
+            instancesProvided--;
+        }
     }
 
     public static void close()
     {
         if (getInstance().jedis != null)
         {
-            getInstance().jedis.close();
+            getInstance().closeIfLastInstance();
         }
     }
 

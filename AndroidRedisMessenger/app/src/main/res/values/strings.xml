@@ -11,4 +11,7 @@
         <item>You talkin\' to me?</item>
         <item>Caffeine is a way of borrowing time that should rightly belong to your later life</item>
     </string-array>
+
+    <string name="listview_icon_description">Profile Picture</string>
+    <string name="username">Username</string>
 </resources>
