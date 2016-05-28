@@ -110,7 +110,7 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
             text1.setText(messageDetails.get("username"));
             Drawable drawable = getDrawable(android.R.drawable.ic_menu_agenda);
 
-            if (userColour != null && userColour.length() > 0)
+            if (userColour != null && userColour.length() > 0 && drawable != null)
             {
                 drawable.mutate().setColorFilter(Color.parseColor(userColour), PorterDuff.Mode.SRC_IN);
             }
