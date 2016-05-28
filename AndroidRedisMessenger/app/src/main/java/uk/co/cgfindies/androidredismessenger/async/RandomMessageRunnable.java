@@ -4,6 +4,8 @@ import android.content.Context;
 
 import org.droidparts.util.L;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import redis.clients.jedis.Jedis;
@@ -60,7 +62,8 @@ public class RandomMessageRunnable extends RepeatRunnable
     @Override
     public void run()
     {
-        Random random = new Random(System.currentTimeMillis());
+        long messageTime = System.currentTimeMillis();
+        Random random = new Random(messageTime);
         int hit = random.nextInt(maxRandom);
 
         if (hit <= hitMax)
@@ -74,7 +77,12 @@ public class RandomMessageRunnable extends RepeatRunnable
                 int arrayIndex = Math.round(hit / arrayHitMax);
                 try
                 {
-                    jedis.lpush("messages", values[arrayIndex]);
+                    Map<String, String> message = new HashMap<>();
+                    message.put("message", values[arrayIndex]);
+                    message.put("timestamp", Long.toString(messageTime));
+
+                    jedis.hmset("messages:" + Long.toString(messageTime), message);
+                    jedis.lpush("messageKeys", Long.toString(messageTime));
                 }
                 catch (JedisConnectionException e) {
                     L.w(e);
