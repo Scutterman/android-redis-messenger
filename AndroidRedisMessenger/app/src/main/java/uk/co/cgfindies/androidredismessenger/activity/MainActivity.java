@@ -49,13 +49,7 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
         adapter = new MessageAdapter(this);
         setListAdapter(adapter);
 
-        new Thread(new UserRunnable()).start();
-
-        rmr = RandomMessageRunnable.getInstance(this);
-        gmr = GetMessageRunnable.getInstance(this);
-
-        new Thread(rmr).start();
-        new Thread(gmr).start();
+        setupMessageProcesses();
     }
 
     @Override
@@ -85,6 +79,17 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
                 list.setSelection(adapter.getCount()-1);
             }
         });
+    }
+
+    private void setupMessageProcesses()
+    {
+        new Thread(new UserRunnable()).start();
+
+        rmr = RandomMessageRunnable.getInstance(this);
+        gmr = GetMessageRunnable.getInstance(this);
+
+        new Thread(rmr).start();
+        new Thread(gmr).start();
     }
 
     private class MessageAdapter extends ArrayAdapter<MessageDetails>
