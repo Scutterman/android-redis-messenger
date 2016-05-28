@@ -77,14 +77,18 @@ public class RandomMessageRunnable extends RepeatRunnable
                 int arrayIndex = Math.round(hit / arrayHitMax);
                 try
                 {
+                    String username = jedis.srandmember("usernames");
+
                     Map<String, String> message = new HashMap<>();
                     message.put("message", values[arrayIndex]);
                     message.put("timestamp", Long.toString(messageTime));
+                    message.put("username", username);
 
                     jedis.hmset("messages:" + Long.toString(messageTime), message);
-                    jedis.lpush("messageKeys", Long.toString(messageTime));
+                    jedis.rpush("messageKeys", Long.toString(messageTime));
                 }
-                catch (JedisConnectionException e) {
+                catch (JedisConnectionException e)
+                {
                     L.w(e);
                 }
             }

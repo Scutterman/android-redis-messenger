@@ -5,6 +5,8 @@ import org.droidparts.util.L;
 import java.util.Map;
 
 import redis.clients.jedis.Jedis;
+import uk.co.cgfindies.androidredismessenger.model.MessageDetails;
+import uk.co.cgfindies.androidredismessenger.model.User;
 import uk.co.cgfindies.androidredismessenger.storage.JedisProvider;
 
 /**
@@ -20,7 +22,7 @@ public class GetMessageRunnable extends RepeatRunnable
 
     public interface NewMessageFoundInListInterface
     {
-        void newMessageFound(String message);
+        void newMessageFound(MessageDetails messageDetails);
     }
 
     /**
@@ -54,18 +56,21 @@ public class GetMessageRunnable extends RepeatRunnable
         try
         {
             jedis = JedisProvider.getInstance().getJedisInstance();
-            String messageKey = jedis.lpop("messageKeys");
+            String messageKey = jedis.lindex("messageKeys", -1);
 
             if (messageKey != null && !messageKey.equals(lastMessageKey) && messageInterface != null)
             {
                 Map<String, String> messageDetails = jedis.hgetAll("messages:" + messageKey);
+                User user = new User(jedis.hgetAll("users:" + messageDetails.get("username")));
+                MessageDetails details = new MessageDetails(messageDetails, user);
+
                 lastMessageKey = messageKey;
-                messageInterface.newMessageFound(messageDetails.get("message"));
+                messageInterface.newMessageFound(details);
             }
         }
         catch (Exception e)
         {
-            L.w(e.getMessage());
+            L.w(e.getStackTrace());
         }
         finally
         {

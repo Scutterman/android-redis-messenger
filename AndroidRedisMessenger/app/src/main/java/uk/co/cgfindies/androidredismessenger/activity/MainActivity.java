@@ -1,6 +1,9 @@
 package uk.co.cgfindies.androidredismessenger.activity;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,13 +13,16 @@ import android.widget.TextView;
 import org.droidparts.activity.ListActivity;
 import org.droidparts.adapter.widget.ArrayAdapter;
 import org.droidparts.annotation.inject.InjectView;
+import org.droidparts.util.L;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import uk.co.cgfindies.androidredismessenger.R;
 import uk.co.cgfindies.androidredismessenger.async.GetMessageRunnable;
 import uk.co.cgfindies.androidredismessenger.async.RandomMessageRunnable;
 import uk.co.cgfindies.androidredismessenger.async.UserRunnable;
+import uk.co.cgfindies.androidredismessenger.model.MessageDetails;
 
 public class MainActivity extends ListActivity implements GetMessageRunnable.NewMessageFoundInListInterface
 {
@@ -41,17 +47,13 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
         adapter = new MessageAdapter(this);
         setListAdapter(adapter);
 
+        new Thread(new UserRunnable()).start();
+
         rmr = RandomMessageRunnable.getInstance(this);
         gmr = GetMessageRunnable.getInstance(this);
 
         new Thread(rmr).start();
         new Thread(gmr).start();
-
-        adapter.add("abcdef ghijkl mnopqrstuv wxyz abcdef ghijkl mnopqrstuv wxyz abcdef ghijkl mnopqrstuv wxyz abcdef ghijkl mnopqrstuv wxyz abcdef ghijkl mnopqrstuv wxyz ");
-        adapter.add("a");
-        adapter.notifyDataSetInvalidated();
-
-        new Thread(new UserRunnable()).start();
     }
 
     @Override
@@ -69,25 +71,25 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
     }
 
     @Override
-    public void newMessageFound(final String message)
+    public void newMessageFound(final MessageDetails messageDetails)
     {
         runOnUiThread(new Runnable()
         {
             @Override
             public void run()
             {
-                adapter.add(message);
+                adapter.add(messageDetails);
                 adapter.notifyDataSetInvalidated();
                 list.setSelection(adapter.getCount()-1);
             }
         });
     }
 
-    private class MessageAdapter extends ArrayAdapter<String>
+    private class MessageAdapter extends ArrayAdapter<MessageDetails>
     {
 
         public MessageAdapter(Context ctx) {
-            super(ctx, R.layout.list_item, new ArrayList<String>());
+            super(ctx, R.layout.list_item, new ArrayList<MessageDetails>());
         }
 
         @Override
@@ -99,10 +101,21 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
                 view = convertView;
             }
 
-            String message = getItem(position);
-            ((TextView)view.findViewById(android.R.id.text1)).setText(getString(R.string.username));
-            ((TextView)view.findViewById(android.R.id.text1)).setCompoundDrawablesWithIntrinsicBounds(0, android.R.drawable.ic_menu_agenda, 0, 0);
-            ((TextView)view.findViewById(android.R.id.text2)).setText(message);
+            MessageDetails messageDetails = getItem(position);
+            String userColour = messageDetails.getUser().get("colour");
+
+            TextView text1 = ((TextView)view.findViewById(android.R.id.text1));
+            text1.setText(messageDetails.get("username"));
+            Drawable drawable = getDrawable(android.R.drawable.ic_menu_agenda);
+
+            if (userColour != null && userColour.length() > 0)
+            {
+                drawable.mutate().setColorFilter(Color.parseColor(userColour), PorterDuff.Mode.SRC_IN);
+            }
+
+            text1.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
+
+            ((TextView)view.findViewById(android.R.id.text2)).setText(messageDetails.get("message"));
 
             return view;
         }

@@ -20,7 +20,10 @@ public class UserRunnable implements Runnable, JedisProvider.DoThisInterface
     }
 
     @Override
-    public void doThis(Jedis jedis) {
+    public void doThis(Jedis jedis)
+    {
+        jedis.del("users");
+        jedis.del("usernames");
         long numberOfUsrs = jedis.llen("users");
 
         if (numberOfUsrs >= 10)
@@ -38,31 +41,31 @@ public class UserRunnable implements Runnable, JedisProvider.DoThisInterface
             String colour = "";
             if (usernumber >= 900)
             {
-                colour = "#ff0000";
+                colour = "#FF0000";
             }
             else if (usernumber >= 800)
             {
-                colour = "#00ff00";
+                colour = "#00FF00";
             }
             else if (usernumber >= 700)
             {
-                colour = "#0000ff";
+                colour = "#0000FF";
             }
             else if (usernumber >= 600)
             {
-                colour = "#ffff00";
+                colour = "#FFFF00";
             }
             else if (usernumber >= 500)
             {
-                colour = "#ff00ff";
+                colour = "#FF00FF";
             }
             else if (usernumber >= 400)
             {
-                colour = "#00ffff";
+                colour = "#00FFFF";
             }
             else if (usernumber >= 300)
             {
-                colour = "#ffffff";
+                colour = "#FFFFFF";
             }
             else if (usernumber >= 200)
             {
@@ -72,15 +75,16 @@ public class UserRunnable implements Runnable, JedisProvider.DoThisInterface
             {
                 colour = "#808080";
             }
-            else if (usernumber >= 800)
+            else if (usernumber >= 0)
             {
-                colour = "#ff0080";
+                colour = "#FF0080";
             }
 
             Map<String, String> user = new HashMap<>();
             user.put("username", "user" + Integer.toString(usernumber));
             user.put("colour", colour);
             jedis.hmset("users:" + user.get("username"), user);
+            jedis.sadd("usernames", user.get("username"));
         }
 
     }
