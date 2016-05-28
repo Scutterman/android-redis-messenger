@@ -32,7 +32,7 @@ public class MessageDetails extends Model
         {
             timestamp = System.currentTimeMillis();
         }
-        
+
         Map<String, String> message = new HashMap<>();
         message.put("message", messageContent);
         message.put("timestamp", Long.toString(timestamp));
