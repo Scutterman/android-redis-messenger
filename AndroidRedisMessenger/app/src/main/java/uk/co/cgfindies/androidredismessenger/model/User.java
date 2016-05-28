@@ -18,6 +18,19 @@ public class User extends Model
         fields.add("colour");
     }
 
+    public static User createFromUsername(Jedis jedis, String username)
+    {
+        User user = null;
+
+        Map<String, String> userMap = jedis.hgetAll("users:" + username);
+        if (userMap != null)
+        {
+            user = new User(userMap);
+        }
+
+        return user;
+    }
+
     public static String addUser(Jedis jedis, int usernumber)
     {
         if (usernumber == -1)

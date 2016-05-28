@@ -14,4 +14,5 @@
 
     <string name="listview_icon_description">Profile Picture</string>
     <string name="username">Username</string>
+    <string name="add_message_button_text">+</string>
 </resources>

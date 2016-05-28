@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.v4.content.res.ResourcesCompat;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
@@ -38,7 +39,7 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
     private ListView list;
 
     @InjectDependency
-    private PrefsManager prefs;
+    private PrefsManager prefs = null;
 
     @Override
     protected void onPreInject() {
@@ -101,22 +102,78 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
     {
         if (prefs.get("username").length() > 0)
         {
+            populateUserBox();
             return;
         }
 
-        class CreateUserRunnable implements Runnable, JedisProvider.DoThisInterface {
+        class CreateUserRunnable implements Runnable, JedisProvider.DoThisInterface
+        {
             @Override
-            public void run() {
+            public void run()
+            {
                 JedisProvider.doThis(this);
             }
 
             @Override
-            public void doThis(Jedis jedis) {
+            public void doThis(Jedis jedis)
+            {
                 String username = User.addUser(jedis, -1);
                 prefs.set("username", username);
+                populateUserBox();
             }
         }
         new Thread(new CreateUserRunnable()).start();
+    }
+
+    private void populateUserBox()
+    {
+        class PopulateUserRunnable implements Runnable, JedisProvider.DoThisInterface
+        {
+            @Override
+            public void run()
+            {
+                JedisProvider.doThis(this);
+            }
+
+            @Override
+            public void doThis(Jedis jedis)
+            {
+                final User user = User.createFromUsername(jedis, prefs.get("username"));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setUserElements(user, R.id.username, null);
+                    }
+                });
+            }
+        }
+
+        new Thread(new PopulateUserRunnable()).start();
+    }
+
+    private void setUserElements(User user, int viewId, View parent)
+    {
+        String userColour = user.get("colour");
+        TextView text1 = null;
+
+        if (parent != null) {
+            text1 = ((TextView) parent.findViewById(viewId));
+        }
+        else
+        {
+            text1 = ((TextView) findViewById(viewId));
+        }
+
+        text1.setText(user.get("username"));
+        Drawable drawable = ResourcesCompat.getDrawable(getResources(), android.R.drawable.ic_menu_agenda, null);
+
+        if (userColour != null && userColour.length() > 0 && drawable != null)
+        {
+            drawable.mutate().setColorFilter(Color.parseColor(userColour), PorterDuff.Mode.SRC_IN);
+        }
+
+        text1.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
+
     }
 
     private class MessageAdapter extends ArrayAdapter<MessageDetails>
@@ -136,19 +193,7 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
             }
 
             MessageDetails messageDetails = getItem(position);
-            String userColour = messageDetails.getUser().get("colour");
-
-            TextView text1 = ((TextView)view.findViewById(android.R.id.text1));
-            text1.setText(messageDetails.get("username"));
-            Drawable drawable = getDrawable(android.R.drawable.ic_menu_agenda);
-
-            if (userColour != null && userColour.length() > 0 && drawable != null)
-            {
-                drawable.mutate().setColorFilter(Color.parseColor(userColour), PorterDuff.Mode.SRC_IN);
-            }
-
-            text1.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
-
+            setUserElements(messageDetails.getUser(), android.R.id.text1, view);
             ((TextView)view.findViewById(android.R.id.text2)).setText(messageDetails.get("message"));
 
             return view;

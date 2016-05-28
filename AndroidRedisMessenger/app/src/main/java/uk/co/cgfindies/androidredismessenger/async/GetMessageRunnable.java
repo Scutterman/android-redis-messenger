@@ -62,7 +62,7 @@ public class GetMessageRunnable extends RepeatRunnable implements JedisProvider.
         if (messageKey != null && !messageKey.equals(lastMessageKey) && messageInterface != null)
         {
             Map<String, String> messageDetails = jedis.hgetAll("messages:" + messageKey);
-            User user = new User(jedis.hgetAll("users:" + messageDetails.get("username")));
+            User user = User.createFromUsername(jedis, messageDetails.get("username"));
             MessageDetails details = new MessageDetails(messageDetails, user);
 
             lastMessageKey = messageKey;
