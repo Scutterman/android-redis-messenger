@@ -64,14 +64,9 @@ public class JedisProvider
         }
     }
 
-    public static JedisProvider getInstance()
+    protected static JedisProvider getInstance()
     {
-        if (instance == null)
-        {
-            instance = new JedisProvider();
-        }
-
-        return instance;
+        return new JedisProvider();
     }
 
     public static void doThis(DoThisInterface iface)

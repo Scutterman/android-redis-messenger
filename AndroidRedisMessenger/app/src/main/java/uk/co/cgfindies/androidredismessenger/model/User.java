@@ -1,14 +1,13 @@
 package uk.co.cgfindies.androidredismessenger.model;
 
-import org.droidparts.util.L;
-
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import redis.clients.jedis.Jedis;
 
 /**
- * Created by Scutterman on 28/05/2016.
+ * Provides a container for User data
  */
 public class User extends Model
 {
@@ -19,8 +18,13 @@ public class User extends Model
         fields.add("colour");
     }
 
-    public static void addUser(Jedis jedis, int usernumber)
+    public static String addUser(Jedis jedis, int usernumber)
     {
+        if (usernumber == -1)
+        {
+            usernumber = (new Random(System.currentTimeMillis()).nextInt(1000));
+        }
+
         String colour = "";
         if (usernumber >= 900)
         {
@@ -63,10 +67,13 @@ public class User extends Model
             colour = "#FF0080";
         }
 
+        String username = "user" + Integer.toString(usernumber);
         Map<String, String> user = new HashMap<>();
-        user.put("username", "user" + Integer.toString(usernumber));
+        user.put("username", username);
         user.put("colour", colour);
-        jedis.hmset("users:" + user.get("username"), user);
-        jedis.sadd("usernames", user.get("username"));
+        jedis.hmset("users:" + username, user);
+        jedis.sadd("usernames", username);
+
+        return username;
     }
 }

@@ -14,14 +14,18 @@ import org.droidparts.activity.ListActivity;
 import org.droidparts.adapter.widget.ArrayAdapter;
 import org.droidparts.annotation.inject.InjectDependency;
 import org.droidparts.annotation.inject.InjectView;
+
 import java.util.ArrayList;
 
+import redis.clients.jedis.Jedis;
 import uk.co.cgfindies.androidredismessenger.R;
 import uk.co.cgfindies.androidredismessenger.application.PrefsManager;
 import uk.co.cgfindies.androidredismessenger.async.GetMessageRunnable;
 import uk.co.cgfindies.androidredismessenger.async.RandomMessageRunnable;
 import uk.co.cgfindies.androidredismessenger.async.UserRunnable;
 import uk.co.cgfindies.androidredismessenger.model.MessageDetails;
+import uk.co.cgfindies.androidredismessenger.model.User;
+import uk.co.cgfindies.androidredismessenger.storage.JedisProvider;
 
 public class MainActivity extends ListActivity implements GetMessageRunnable.NewMessageFoundInListInterface
 {
@@ -50,6 +54,7 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
         setListAdapter(adapter);
 
         setupMessageProcesses();
+        createUserIfNotExists();
     }
 
     @Override
@@ -90,6 +95,28 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
 
         new Thread(rmr).start();
         new Thread(gmr).start();
+    }
+
+    private void createUserIfNotExists()
+    {
+        if (prefs.get("username").length() > 0)
+        {
+            return;
+        }
+
+        class CreateUserRunnable implements Runnable, JedisProvider.DoThisInterface {
+            @Override
+            public void run() {
+                JedisProvider.doThis(this);
+            }
+
+            @Override
+            public void doThis(Jedis jedis) {
+                String username = User.addUser(jedis, -1);
+                prefs.set("username", username);
+            }
+        }
+        new Thread(new CreateUserRunnable()).start();
     }
 
     private class MessageAdapter extends ArrayAdapter<MessageDetails>

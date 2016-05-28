@@ -13,4 +13,19 @@ public class PrefsManager extends AbstractPrefsManager
     {
         super(ctx, 1);
     }
+
+    public boolean isUserCreated()
+    {
+        return (getPreferences().contains("username"));
+    }
+
+    public void set(String key, String value)
+    {
+        saveString(key, value);
+    }
+
+    public String get(String key)
+    {
+        return getPreferences().getString(key, "");
+    }
 }

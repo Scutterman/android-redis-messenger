@@ -33,13 +33,14 @@ public class MessageDetails extends Model
             timestamp = System.currentTimeMillis();
         }
 
+        String timestampString = Long.toString(timestamp);
         Map<String, String> message = new HashMap<>();
         message.put("message", messageContent);
-        message.put("timestamp", Long.toString(timestamp));
+        message.put("timestamp", timestampString);
         message.put("username", username);
 
-        jedis.hmset("messages:" + Long.toString(timestamp), message);
-        jedis.rpush("messageKeys", Long.toString(timestamp));
+        jedis.hmset("messages:" + timestampString, message);
+        jedis.rpush("messageKeys", timestampString);
 
     }
 }
