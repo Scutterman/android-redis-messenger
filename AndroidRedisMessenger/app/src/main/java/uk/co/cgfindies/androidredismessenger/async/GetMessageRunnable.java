@@ -12,7 +12,7 @@ import uk.co.cgfindies.androidredismessenger.storage.JedisProvider;
 /**
  * Provides a way to get messages.
  */
-public class GetMessageRunnable extends RepeatRunnable
+public class GetMessageRunnable extends RepeatRunnable implements JedisProvider.DoThisInterface
 {
     private static GetMessageRunnable instance;
 
@@ -51,36 +51,22 @@ public class GetMessageRunnable extends RepeatRunnable
 
     @Override
     public void run() {
-        Jedis jedis = null;
-
-        try
-        {
-            jedis = JedisProvider.getInstance().getJedisInstance();
-            String messageKey = jedis.lindex("messageKeys", -1);
-
-            if (messageKey != null && !messageKey.equals(lastMessageKey) && messageInterface != null)
-            {
-                Map<String, String> messageDetails = jedis.hgetAll("messages:" + messageKey);
-                User user = new User(jedis.hgetAll("users:" + messageDetails.get("username")));
-                MessageDetails details = new MessageDetails(messageDetails, user);
-
-                lastMessageKey = messageKey;
-                messageInterface.newMessageFound(details);
-            }
-        }
-        catch (Exception e)
-        {
-            L.w(e.getStackTrace());
-        }
-        finally
-        {
-            if (jedis != null)
-            {
-                jedis.close();
-            }
-        }
-
+        JedisProvider.doThis(this);
         super.run();
     }
 
+    @Override
+    public void doThis(Jedis jedis) {
+        String messageKey = jedis.lindex("messageKeys", -1);
+
+        if (messageKey != null && !messageKey.equals(lastMessageKey) && messageInterface != null)
+        {
+            Map<String, String> messageDetails = jedis.hgetAll("messages:" + messageKey);
+            User user = new User(jedis.hgetAll("users:" + messageDetails.get("username")));
+            MessageDetails details = new MessageDetails(messageDetails, user);
+
+            lastMessageKey = messageKey;
+            messageInterface.newMessageFound(details);
+        }
+    }
 }

@@ -1,7 +1,5 @@
 package uk.co.cgfindies.androidredismessenger.async;
 
-import org.droidparts.util.L;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -22,8 +20,6 @@ public class UserRunnable implements Runnable, JedisProvider.DoThisInterface
     @Override
     public void doThis(Jedis jedis)
     {
-        jedis.del("users");
-        jedis.del("usernames");
         long numberOfUsrs = jedis.llen("users");
 
         if (numberOfUsrs >= 10)
