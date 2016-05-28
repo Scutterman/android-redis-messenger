@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.content.res.ResourcesCompat;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -15,6 +16,8 @@ import org.droidparts.activity.ListActivity;
 import org.droidparts.adapter.widget.ArrayAdapter;
 import org.droidparts.annotation.inject.InjectDependency;
 import org.droidparts.annotation.inject.InjectView;
+import org.droidparts.util.ui.ViewUtils;
+import org.droidparts.widget.ClearableEditText;
 
 import java.util.ArrayList;
 
@@ -28,7 +31,7 @@ import uk.co.cgfindies.androidredismessenger.model.MessageDetails;
 import uk.co.cgfindies.androidredismessenger.model.User;
 import uk.co.cgfindies.androidredismessenger.storage.JedisProvider;
 
-public class MainActivity extends ListActivity implements GetMessageRunnable.NewMessageFoundInListInterface
+public class MainActivity extends ListActivity implements GetMessageRunnable.NewMessageFoundInListInterface, View.OnClickListener
 {
     private RandomMessageRunnable rmr = null;
     private GetMessageRunnable gmr = null;
@@ -40,6 +43,9 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
 
     @InjectDependency
     private PrefsManager prefs = null;
+
+    @InjectView(id=R.id.add_message, click=true)
+    private Button addMessageButton;
 
     @Override
     protected void onPreInject() {
@@ -69,6 +75,15 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
         if (gmr != null)
         {
             gmr.close();
+        }
+    }
+
+    @Override
+    public void onClick(View v)
+    {
+        if (v == addMessageButton)
+        {
+            addMessage();
         }
     }
 
@@ -154,7 +169,7 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
     private void setUserElements(User user, int viewId, View parent)
     {
         String userColour = user.get("colour");
-        TextView text1 = null;
+        TextView text1;
 
         if (parent != null) {
             text1 = ((TextView) parent.findViewById(viewId));
@@ -174,6 +189,30 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
 
         text1.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
 
+    }
+
+    private void addMessage()
+    {
+        ClearableEditText messageView = (ClearableEditText) findViewById(R.id.message);
+        final String message = messageView.getText().toString();
+        messageView.setText("");
+        ViewUtils.setKeyboardVisible(messageView, false);
+
+        class AddMessageRunnable implements Runnable, JedisProvider.DoThisInterface
+        {
+            @Override
+            public void run()
+            {
+                JedisProvider.doThis(this);
+            }
+
+            @Override
+            public void doThis(Jedis jedis)
+            {
+                MessageDetails.addMessage(jedis, message, prefs.get("username"), -1);
+            }
+        }
+        new Thread(new AddMessageRunnable()).start();
     }
 
     private class MessageAdapter extends ArrayAdapter<MessageDetails>
