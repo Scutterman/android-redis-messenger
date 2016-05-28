@@ -1,9 +1,12 @@
 package uk.co.cgfindies.androidredismessenger.model;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import redis.clients.jedis.Jedis;
+
 /**
- * Created by Scutterman on 28/05/2016.
+ * Provides a container for messages
  */
 public class MessageDetails extends Model
 {
@@ -21,5 +24,22 @@ public class MessageDetails extends Model
     public User getUser()
     {
         return user;
+    }
+
+    public static void addMessage(Jedis jedis, String messageContent, String username, long timestamp)
+    {
+        if (timestamp == -1)
+        {
+            timestamp = System.currentTimeMillis();
+        }
+        
+        Map<String, String> message = new HashMap<>();
+        message.put("message", messageContent);
+        message.put("timestamp", Long.toString(timestamp));
+        message.put("username", username);
+
+        jedis.hmset("messages:" + Long.toString(timestamp), message);
+        jedis.rpush("messageKeys", Long.toString(timestamp));
+
     }
 }

@@ -8,6 +8,7 @@ import java.util.Random;
 
 import redis.clients.jedis.Jedis;
 import uk.co.cgfindies.androidredismessenger.R;
+import uk.co.cgfindies.androidredismessenger.model.MessageDetails;
 import uk.co.cgfindies.androidredismessenger.storage.JedisProvider;
 
 /**
@@ -77,13 +78,6 @@ public class RandomMessageRunnable extends RepeatRunnable implements JedisProvid
     @Override
     public void doThis(Jedis jedis) {
         String username = jedis.srandmember("usernames");
-
-        Map<String, String> message = new HashMap<>();
-        message.put("message", messageContent);
-        message.put("timestamp", Long.toString(messageTime));
-        message.put("username", username);
-
-        jedis.hmset("messages:" + Long.toString(messageTime), message);
-        jedis.rpush("messageKeys", Long.toString(messageTime));
+        MessageDetails.addMessage(jedis, messageContent, username, messageTime);
     }
 }
