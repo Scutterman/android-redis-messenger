@@ -58,7 +58,12 @@ public class GetMessageRunnable extends RepeatRunnable
                 lastMessage = message;
                 messageInterface.newMessageFound(message);
             }
-        } finally
+        }
+        catch (Exception e)
+        {
+            L.w(e.getMessage());
+        }
+        finally
         {
             if (jedis != null)
             {

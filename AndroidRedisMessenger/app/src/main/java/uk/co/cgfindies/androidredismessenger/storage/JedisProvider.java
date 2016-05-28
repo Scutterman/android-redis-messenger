@@ -1,5 +1,7 @@
 package uk.co.cgfindies.androidredismessenger.storage;
 
+import org.droidparts.util.L;
+
 import redis.clients.jedis.Jedis;
 
 /**
@@ -7,6 +9,11 @@ import redis.clients.jedis.Jedis;
  */
 public class JedisProvider
 {
+    public interface DoThisInterface
+    {
+        void doThis(Jedis jedis);
+    }
+
     private static JedisProvider instance;
     private Jedis jedis;
     private int instancesProvided = 0;
@@ -66,4 +73,33 @@ public class JedisProvider
 
         return instance;
     }
+
+    public static void doThis(DoThisInterface iface)
+    {
+        if (iface == null)
+        {
+            return;
+        }
+
+        Jedis jedis = null;
+
+        try
+        {
+            jedis = JedisProvider.getInstance().getJedisInstance();
+            iface.doThis(jedis);
+        }
+        catch (Exception e)
+        {
+            L.w(e.getMessage());
+        }
+        finally
+        {
+            if (jedis != null)
+            {
+                jedis.close();
+            }
+        }
+
+    }
+
 }

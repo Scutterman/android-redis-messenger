@@ -9,7 +9,12 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="0.25"
+        android:paddingEnd="@dimen/activity_horizontal_margin"
+        android:paddingStart="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:textSize="10sp"
+        android:layout_gravity="center"
         android:id="@android:id/text1"/>
     <TextView
         android:layout_width="0dp"

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import uk.co.cgfindies.androidredismessenger.R;
 import uk.co.cgfindies.androidredismessenger.async.GetMessageRunnable;
 import uk.co.cgfindies.androidredismessenger.async.RandomMessageRunnable;
+import uk.co.cgfindies.androidredismessenger.async.UserRunnable;
 
 public class MainActivity extends ListActivity implements GetMessageRunnable.NewMessageFoundInListInterface
 {
@@ -49,6 +50,8 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
         adapter.add("abcdef ghijkl mnopqrstuv wxyz abcdef ghijkl mnopqrstuv wxyz abcdef ghijkl mnopqrstuv wxyz abcdef ghijkl mnopqrstuv wxyz abcdef ghijkl mnopqrstuv wxyz ");
         adapter.add("a");
         adapter.notifyDataSetInvalidated();
+
+        new Thread(new UserRunnable()).start();
     }
 
     @Override
