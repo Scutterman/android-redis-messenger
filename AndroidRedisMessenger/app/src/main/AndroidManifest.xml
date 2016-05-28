@@ -13,6 +13,10 @@
         android:name=".application.BaseApplication">
 
         <meta-data android:name="droidparts_log_level" android:value="warn"/>
+        <meta-data
+            android:name="droidparts_dependency_provider"
+            android:value=".application.DependencyProvider" />
+
 
         <activity android:name=".activity.MainActivity">
             <intent-filter>

@@ -12,13 +12,12 @@ import android.widget.TextView;
 
 import org.droidparts.activity.ListActivity;
 import org.droidparts.adapter.widget.ArrayAdapter;
+import org.droidparts.annotation.inject.InjectDependency;
 import org.droidparts.annotation.inject.InjectView;
-import org.droidparts.util.L;
-
 import java.util.ArrayList;
-import java.util.Map;
 
 import uk.co.cgfindies.androidredismessenger.R;
+import uk.co.cgfindies.androidredismessenger.application.PrefsManager;
 import uk.co.cgfindies.androidredismessenger.async.GetMessageRunnable;
 import uk.co.cgfindies.androidredismessenger.async.RandomMessageRunnable;
 import uk.co.cgfindies.androidredismessenger.async.UserRunnable;
@@ -33,6 +32,9 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
 
     @InjectView(id=android.R.id.list)
     private ListView list;
+
+    @InjectDependency
+    private PrefsManager prefs;
 
     @Override
     protected void onPreInject() {

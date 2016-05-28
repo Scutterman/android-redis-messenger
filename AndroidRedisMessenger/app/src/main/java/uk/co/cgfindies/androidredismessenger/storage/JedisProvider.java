@@ -90,7 +90,7 @@ public class JedisProvider
         }
         catch (Exception e)
         {
-            L.w(e.getStackTrace());
+            L.w(e);
         }
         finally
         {
