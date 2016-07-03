@@ -2,8 +2,6 @@ package uk.co.cgfindies.androidredismessenger.async;
 
 import android.content.Context;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 import redis.clients.jedis.Jedis;
@@ -33,8 +31,9 @@ public class RandomMessageRunnable extends RepeatRunnable implements JedisProvid
      *
      * @param ctx Used to get strings.
      */
-    private RandomMessageRunnable(Context ctx)
+    private RandomMessageRunnable(Context ctx, JedisProvider.HandleNoConnectionInterface hncInterface)
     {
+        super(hncInterface);
         values = ctx.getResources().getStringArray(R.array.random_messages);
         int stringArrayLength = values.length;
         arrayHitMax = Math.round(hitMax / stringArrayLength);
@@ -46,13 +45,14 @@ public class RandomMessageRunnable extends RepeatRunnable implements JedisProvid
      * @param ctx Used to get the strings
      * @return static
      */
-    public static RandomMessageRunnable getInstance(Context ctx)
+    public static RandomMessageRunnable getInstance(Context ctx, JedisProvider.HandleNoConnectionInterface hncInterface)
     {
         if (instance == null)
         {
-            instance = new RandomMessageRunnable(ctx);
+            instance = new RandomMessageRunnable(ctx, hncInterface);
         }
 
+        instance.runNextTime = true;
         return instance;
     }
 
@@ -69,14 +69,15 @@ public class RandomMessageRunnable extends RepeatRunnable implements JedisProvid
         if (hit <= hitMax)
         {
             messageContent = values[Math.round(hit / arrayHitMax)];
-            JedisProvider.doThis(this);
+            JedisProvider.doThis(this, hncInterface);
         }
 
         super.run();
     }
 
     @Override
-    public void doThis(Jedis jedis) {
+    public void doThis(Jedis jedis)
+    {
         String username = jedis.srandmember("usernames");
         MessageDetails.addMessage(jedis, messageContent, username, messageTime);
     }

@@ -3,6 +3,8 @@ package uk.co.cgfindies.androidredismessenger.storage;
 import org.droidparts.util.L;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisConnectionException;
+import uk.co.cgfindies.androidredismessenger.application.BaseApplication;
 
 /**
  * Provides a Jedis instance.
@@ -12,6 +14,11 @@ public class JedisProvider
     public interface DoThisInterface
     {
         void doThis(Jedis jedis);
+    }
+
+    public interface HandleNoConnectionInterface
+    {
+        void handleNoConnection();
     }
 
     private Jedis jedis;
@@ -24,7 +31,8 @@ public class JedisProvider
         if (jedis == null || !jedis.isConnected())
         {
             instancesProvided = 0;
-            jedis = new Jedis("192.168.1.112");
+            L.w(BaseApplication.jedisHost + ":" + Integer.toString(BaseApplication.jedisPort));
+            jedis = new Jedis(BaseApplication.jedisHost, BaseApplication.jedisPort);
         }
 
         instancesProvided++;
@@ -68,7 +76,7 @@ public class JedisProvider
         return new JedisProvider();
     }
 
-    public static void doThis(DoThisInterface iface)
+    public static void doThis(DoThisInterface iface, HandleNoConnectionInterface hncInterface)
     {
         if (iface == null)
         {
@@ -80,11 +88,21 @@ public class JedisProvider
         try
         {
             jedis = JedisProvider.getInstance().getJedisInstance();
+            L.w("Connection!");
             iface.doThis(jedis);
         }
-        catch (Exception e)
+        catch (JedisConnectionException e)
         {
-            L.w(e);
+            if (hncInterface != null)
+            {
+                hncInterface.handleNoConnection();
+            }
+
+            L.w("No Connection!");
+        }
+        catch (Exception ex)
+        {
+            L.w(ex);
         }
         finally
         {

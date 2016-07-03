@@ -1,6 +1,7 @@
 package uk.co.cgfindies.androidredismessenger.activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -20,6 +21,7 @@ import org.droidparts.activity.support.v7.AppCompatActivity;
 import org.droidparts.adapter.widget.ArrayAdapter;
 import org.droidparts.annotation.inject.InjectDependency;
 import org.droidparts.annotation.inject.InjectView;
+import org.droidparts.util.L;
 import org.droidparts.util.ui.ViewUtils;
 import org.droidparts.widget.ClearableEditText;
 
@@ -35,7 +37,7 @@ import uk.co.cgfindies.androidredismessenger.model.MessageDetails;
 import uk.co.cgfindies.androidredismessenger.model.User;
 import uk.co.cgfindies.androidredismessenger.storage.JedisProvider;
 
-public class MainActivity extends AppCompatActivity implements GetMessageRunnable.NewMessageFoundInListInterface, View.OnClickListener
+public class MainActivity extends AppCompatActivity implements GetMessageRunnable.NewMessageFoundInListInterface, View.OnClickListener, JedisProvider.HandleNoConnectionInterface
 {
     private RandomMessageRunnable rmr = null;
     private GetMessageRunnable gmr = null;
@@ -78,8 +80,10 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
     }
 
     @Override
-    protected void onPause() {
+    protected void onPause()
+    {
         super.onPause();
+        L.w("Pause");
         if (rmr != null)
         {
             rmr.close();
@@ -153,22 +157,30 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
         createUserIfNotExists();
 
         uiAvailable = true;
-        new Thread(new UserRunnable()).start();
+        new Thread(new UserRunnable(this)).start();
 
-        gmr = GetMessageRunnable.getInstance(this);
+        gmr = GetMessageRunnable.getInstance(this, this);
         new Thread(gmr).start();
 
         if (sharedPreferences.getBoolean(SettingsFragment.SETTING_GENERATE_MESSAGES_KEY, false))
         {
-            rmr = RandomMessageRunnable.getInstance(this);
+            rmr = RandomMessageRunnable.getInstance(this, this);
             new Thread(rmr).start();
         }
 
     }
 
-    private void redirectToSettings()
+    private void redirectToSettings() { redirectToSettings(false); }
+    private void redirectToSettings(boolean unsuccessfulConnection)
     {
-        startActivity(SettingsActivity.getIntent(this));
+        Intent intent = SettingsActivity.getIntent(this);
+
+        if (unsuccessfulConnection)
+        {
+            intent.putExtra(SettingsFragment.ARGUMENT_UNSUCCESSFUL_CONNECTION, true);
+        }
+
+        startActivity(intent);
     }
 
     private void createUserIfNotExists()
@@ -185,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
             @Override
             public void run()
             {
-                JedisProvider.doThis(this);
+                JedisProvider.doThis(this, MainActivity.this);
             }
 
             @Override
@@ -209,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
             @Override
             public void run()
             {
-                JedisProvider.doThis(this);
+                JedisProvider.doThis(this, MainActivity.this);
             }
 
             @Override
@@ -219,6 +231,7 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+
                         if (!uiAvailable)
                         {
                             return;
@@ -280,7 +293,7 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
             @Override
             public void run()
             {
-                JedisProvider.doThis(this);
+                JedisProvider.doThis(this, MainActivity.this);
             }
 
             @Override
@@ -290,6 +303,12 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
             }
         }
         new Thread(new AddMessageRunnable()).start();
+    }
+
+    public void handleNoConnection()
+    {
+        L.w("Redirecting...");
+        redirectToSettings(true);
     }
 
     private class MessageAdapter extends ArrayAdapter<MessageDetails>

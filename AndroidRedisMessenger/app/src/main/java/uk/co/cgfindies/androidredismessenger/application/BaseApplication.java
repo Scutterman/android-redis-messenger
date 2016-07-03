@@ -2,6 +2,7 @@ package uk.co.cgfindies.androidredismessenger.application;
 
 import android.app.Application;
 
+import uk.co.cgfindies.androidredismessenger.fragment.SettingsFragment;
 import uk.co.cgfindies.androidredismessenger.storage.JedisProvider;
 
 /**
@@ -9,4 +10,6 @@ import uk.co.cgfindies.androidredismessenger.storage.JedisProvider;
  */
 public class BaseApplication extends Application
 {
+    public static int jedisPort = SettingsFragment.SETTING_IP_ADDRESS_PORT_VALUE_DEFAULT_INT;
+    public static String jedisHost = "";
 }

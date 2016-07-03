@@ -1,7 +1,5 @@
 package uk.co.cgfindies.androidredismessenger.async;
 
-import org.droidparts.util.L;
-
 import java.util.Map;
 
 import redis.clients.jedis.Jedis;
@@ -28,8 +26,8 @@ public class GetMessageRunnable extends RepeatRunnable implements JedisProvider.
     /**
      * Set up the runner to get new messages.
      */
-    private GetMessageRunnable(NewMessageFoundInListInterface iface) {
-        super();
+    private GetMessageRunnable(JedisProvider.HandleNoConnectionInterface hncInterface, NewMessageFoundInListInterface iface) {
+        super(hncInterface);
         messageInterface = iface;
     }
 
@@ -39,24 +37,27 @@ public class GetMessageRunnable extends RepeatRunnable implements JedisProvider.
      * @param iface Used to report messages back. Can be null.
      * @return static
      */
-    public static GetMessageRunnable getInstance(NewMessageFoundInListInterface iface)
+    public static GetMessageRunnable getInstance(JedisProvider.HandleNoConnectionInterface hncInterface, NewMessageFoundInListInterface iface)
     {
         if (instance == null)
         {
-            instance = new GetMessageRunnable(iface);
+            instance = new GetMessageRunnable(hncInterface, iface);
         }
 
+        instance.runNextTime = true;
         return instance;
     }
 
     @Override
-    public void run() {
-        JedisProvider.doThis(this);
+    public void run()
+    {
+        JedisProvider.doThis(this, hncInterface);
         super.run();
     }
 
     @Override
-    public void doThis(Jedis jedis) {
+    public void doThis(Jedis jedis)
+    {
         String messageKey = jedis.lindex("messageKeys", -1);
 
         if (messageKey != null && !messageKey.equals(lastMessageKey) && messageInterface != null)

@@ -11,9 +11,14 @@ import uk.co.cgfindies.androidredismessenger.storage.JedisProvider;
  */
 public class UserRunnable implements Runnable, JedisProvider.DoThisInterface
 {
+    private JedisProvider.HandleNoConnectionInterface hncInterface;
+    public UserRunnable(JedisProvider.HandleNoConnectionInterface hncInterface) {
+        this.hncInterface = hncInterface;
+    }
+
     @Override
     public void run() {
-        JedisProvider.doThis(this);
+        JedisProvider.doThis(this, hncInterface);
     }
 
     @Override
