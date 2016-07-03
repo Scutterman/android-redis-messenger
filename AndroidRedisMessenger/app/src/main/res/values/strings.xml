@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">Android Redis Messenger</string>
 
+    <!-- Menu Items -->
+    <string name="menu_settings_title">Settings</string>
+
     <string-array name="random_messages">
         <item>Hello World</item>
         <item>You shall not pass</item>
@@ -15,4 +18,13 @@
     <string name="listview_icon_description">Profile Picture</string>
     <string name="username">Username</string>
     <string name="add_message_button_text">+</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+    <string name="setting_generate_messages_title">Generate Messages</string>
+    <string name="setting_ip_address_title">Ip Address</string>
+    <string name="setting_ip_address_port_title">Port</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

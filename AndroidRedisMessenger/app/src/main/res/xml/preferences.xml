@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:defaultValue=""
+        android:id="@+id/setting_ip_address"
+        android:title="@string/setting_ip_address_title"
+        android:inputType="number"
+        android:digits="0123456789."
+        android:key="SETTING_IP_ADDRESS"
+    />
+    <EditTextPreference
+        android:defaultValue="6379"
+        android:id="@+id/setting_ip_address_port"
+        android:title="@string/setting_ip_address_port_title"
+        android:inputType="number"
+        android:key="SETTING_IP_ADDRESS_PORT"
+    />
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:id="@+id/setting_generate_messages"
+        android:title="@string/setting_generate_messages_title"
+        android:key="SETTING_GENERATE_MESSAGES"
+    />
+</PreferenceScreen>

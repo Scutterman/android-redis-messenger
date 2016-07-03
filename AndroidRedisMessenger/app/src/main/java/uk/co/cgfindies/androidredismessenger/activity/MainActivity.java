@@ -1,18 +1,23 @@
 package uk.co.cgfindies.androidredismessenger.activity;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.content.res.ResourcesCompat;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.droidparts.activity.ListActivity;
+import org.droidparts.activity.support.v7.AppCompatActivity;
 import org.droidparts.adapter.widget.ArrayAdapter;
 import org.droidparts.annotation.inject.InjectDependency;
 import org.droidparts.annotation.inject.InjectView;
@@ -23,15 +28,15 @@ import java.util.ArrayList;
 
 import redis.clients.jedis.Jedis;
 import uk.co.cgfindies.androidredismessenger.R;
-import uk.co.cgfindies.androidredismessenger.application.PrefsManager;
 import uk.co.cgfindies.androidredismessenger.async.GetMessageRunnable;
 import uk.co.cgfindies.androidredismessenger.async.RandomMessageRunnable;
 import uk.co.cgfindies.androidredismessenger.async.UserRunnable;
+import uk.co.cgfindies.androidredismessenger.fragment.SettingsFragment;
 import uk.co.cgfindies.androidredismessenger.model.MessageDetails;
 import uk.co.cgfindies.androidredismessenger.model.User;
 import uk.co.cgfindies.androidredismessenger.storage.JedisProvider;
 
-public class MainActivity extends ListActivity implements GetMessageRunnable.NewMessageFoundInListInterface, View.OnClickListener
+public class MainActivity extends AppCompatActivity implements GetMessageRunnable.NewMessageFoundInListInterface, View.OnClickListener
 {
     private RandomMessageRunnable rmr = null;
     private GetMessageRunnable gmr = null;
@@ -42,26 +47,37 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
     private ListView list;
 
     @InjectDependency
-    private PrefsManager prefs = null;
+    SharedPreferences sharedPreferences;
 
     @InjectView(id=R.id.add_message, click=true)
     private Button addMessageButton;
+    private boolean uiAvailable;
 
     @Override
-    protected void onPreInject() {
+    protected void onPreInject()
+    {
         super.onPreInject();
         setContentView(R.layout.activity_main);
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+    }
 
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
         adapter = new MessageAdapter(this);
-        setListAdapter(adapter);
+        list.setAdapter(adapter);
 
         setupMessageProcesses();
         createUserIfNotExists();
+        uiAvailable = true;
     }
 
     @Override
@@ -70,11 +86,36 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
         if (rmr != null)
         {
             rmr.close();
+            rmr = null;
         }
 
         if (gmr != null)
         {
             gmr.close();
+            gmr = null;
+        }
+
+        uiAvailable = false;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.default_menu_items, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent;
+        int itemId = item.getItemId();
+
+        switch (itemId) {
+            case R.id.menu_settings:
+                intent = SettingsActivity.getIntent(this);
+                startActivity(intent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 
@@ -95,6 +136,11 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
             @Override
             public void run()
             {
+                if (!uiAvailable)
+                {
+                    return;
+                }
+
                 adapter.add(messageDetails);
                 adapter.notifyDataSetInvalidated();
                 list.setSelection(adapter.getCount()-1);
@@ -115,7 +161,8 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
 
     private void createUserIfNotExists()
     {
-        if (prefs.get("username").length() > 0)
+        String username = sharedPreferences.getString(SettingsFragment.SETTING_USERNAME, "");
+        if (username.length() > 0)
         {
             populateUserBox();
             return;
@@ -133,7 +180,10 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
             public void doThis(Jedis jedis)
             {
                 String username = User.addUser(jedis, -1);
-                prefs.set("username", username);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString(SettingsFragment.SETTING_USERNAME, username);
+                editor.apply();
+
                 populateUserBox();
             }
         }
@@ -153,10 +203,15 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
             @Override
             public void doThis(Jedis jedis)
             {
-                final User user = User.createFromUsername(jedis, prefs.get("username"));
+                final User user = User.createFromUsername(jedis, sharedPreferences.getString(SettingsFragment.SETTING_USERNAME, ""));
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        if (!uiAvailable)
+                        {
+                            return;
+                        }
+
                         setUserElements(user, R.id.username, null);
                     }
                 });
@@ -179,21 +234,31 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
             text1 = ((TextView) findViewById(viewId));
         }
 
-        text1.setText(user.get("username"));
-        Drawable drawable = ResourcesCompat.getDrawable(getResources(), android.R.drawable.ic_menu_agenda, null);
-
-        if (userColour != null && userColour.length() > 0 && drawable != null)
+        if (text1 != null)
         {
-            drawable.mutate().setColorFilter(Color.parseColor(userColour), PorterDuff.Mode.SRC_IN);
+
+            Drawable drawable = ResourcesCompat.getDrawable(getResources(), android.R.drawable.ic_menu_agenda, null);
+
+            if (userColour != null && userColour.length() > 0 && drawable != null)
+            {
+                drawable.mutate().setColorFilter(Color.parseColor(userColour), PorterDuff.Mode.SRC_IN);
+            }
+
+            text1.setText(user.get("username"));
+            text1.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
         }
 
-        text1.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
 
     }
 
     private void addMessage()
     {
         ClearableEditText messageView = (ClearableEditText) findViewById(R.id.message);
+        if (messageView == null)
+        {
+            return;
+        }
+
         final String message = messageView.getText().toString();
         messageView.setText("");
         ViewUtils.setKeyboardVisible(messageView, false);
@@ -209,7 +274,7 @@ public class MainActivity extends ListActivity implements GetMessageRunnable.New
             @Override
             public void doThis(Jedis jedis)
             {
-                MessageDetails.addMessage(jedis, message, prefs.get("username"), -1);
+                MessageDetails.addMessage(jedis, message, sharedPreferences.getString(SettingsFragment.SETTING_USERNAME, ""), -1);
             }
         }
         new Thread(new AddMessageRunnable()).start();

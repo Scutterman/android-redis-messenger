@@ -14,7 +14,6 @@ public class JedisProvider
         void doThis(Jedis jedis);
     }
 
-    private static JedisProvider instance;
     private Jedis jedis;
     private int instancesProvided = 0;
 

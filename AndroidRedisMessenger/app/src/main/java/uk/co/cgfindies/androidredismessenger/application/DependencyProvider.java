@@ -9,19 +9,8 @@ import org.droidparts.AbstractDependencyProvider;
  */
 public class DependencyProvider extends AbstractDependencyProvider
 {
-    private PrefsManager prefs;
     public DependencyProvider(Context ctx)
     {
         super(ctx);
-    }
-
-    public PrefsManager getPrefsManager()
-    {
-        if (prefs == null)
-        {
-            prefs = new PrefsManager(getContext());
-        }
-
-        return prefs;
     }
 }
