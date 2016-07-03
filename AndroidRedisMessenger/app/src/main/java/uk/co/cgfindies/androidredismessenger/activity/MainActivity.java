@@ -1,7 +1,6 @@
 package uk.co.cgfindies.androidredismessenger.activity;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -75,9 +74,7 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
         adapter = new MessageAdapter(this);
         list.setAdapter(adapter);
 
-        setupMessageProcesses();
-        createUserIfNotExists();
-        uiAvailable = true;
+        setupMessageProcessesIfRequiredSettingsArePresent();
     }
 
     @Override
@@ -106,13 +103,11 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Intent intent;
         int itemId = item.getItemId();
 
         switch (itemId) {
             case R.id.menu_settings:
-                intent = SettingsActivity.getIntent(this);
-                startActivity(intent);
+                redirectToSettings();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -148,15 +143,32 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
         });
     }
 
-    private void setupMessageProcesses()
+    private void setupMessageProcessesIfRequiredSettingsArePresent()
     {
+        if (SettingsFragment.validateSettings(this).size() > 0)
+        {
+            redirectToSettings();
+            return;
+        }
+        createUserIfNotExists();
+
+        uiAvailable = true;
         new Thread(new UserRunnable()).start();
 
-        rmr = RandomMessageRunnable.getInstance(this);
         gmr = GetMessageRunnable.getInstance(this);
-
-        new Thread(rmr).start();
         new Thread(gmr).start();
+
+        if (sharedPreferences.getBoolean(SettingsFragment.SETTING_GENERATE_MESSAGES_KEY, false))
+        {
+            rmr = RandomMessageRunnable.getInstance(this);
+            new Thread(rmr).start();
+        }
+
+    }
+
+    private void redirectToSettings()
+    {
+        startActivity(SettingsActivity.getIntent(this));
     }
 
     private void createUserIfNotExists()
