@@ -2,18 +2,18 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <EditTextPreference
         android:defaultValue=""
-        android:id="@+id/setting_ip_address"
-        android:title="@string/setting_ip_address_title"
+        android:id="@+id/setting_host"
+        android:title="@string/setting_host_title"
         android:inputType="number"
         android:digits="0123456789."
-        android:key="SETTING_IP_ADDRESS"
+        android:key="SETTING_HOST"
     />
     <EditTextPreference
         android:defaultValue="6379"
-        android:id="@+id/setting_ip_address_port"
-        android:title="@string/setting_ip_address_port_title"
+        android:id="@+id/setting_host_port"
+        android:title="@string/setting_host_port_title"
         android:inputType="number"
-        android:key="SETTING_IP_ADDRESS_PORT"
+        android:key="SETTING_HOST_PORT"
     />
     <CheckBoxPreference
         android:defaultValue="false"

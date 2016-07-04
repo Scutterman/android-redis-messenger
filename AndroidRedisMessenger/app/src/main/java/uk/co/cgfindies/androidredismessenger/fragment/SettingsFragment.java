@@ -24,13 +24,13 @@ import uk.co.cgfindies.androidredismessenger.application.BaseApplication;
  */
 public class SettingsFragment extends PreferenceFragment
 {
-    public static final String SETTING_IP_ADDRESS_KEY = "SETTING_IP_ADDRESS";
-    public static final String SETTING_IP_ADDRESS_PORT_KEY = "SETTING_IP_ADDRESS_PORT";
+    public static final String SETTING_HOST_KEY = "SETTING_HOST";
+    public static final String SETTING_HOST_PORT_KEY = "SETTING_HOST_PORT";
     public static final String SETTING_GENERATE_MESSAGES_KEY = "SETTING_GENERATE_MESSAGES";
     public static final String SETTING_USERNAME = "SETTING_USERNAME";
 
-    public static final String SETTING_IP_ADDRESS_PORT_VALUE_DEFAULT = "6379";
-    public static final int SETTING_IP_ADDRESS_PORT_VALUE_DEFAULT_INT = 6379;
+    public static final String SETTING_HOST_PORT_VALUE_DEFAULT = "6379";
+    public static final int SETTING_HOST_PORT_VALUE_DEFAULT_INT = 6379;
 
     public static final String ARGUMENT_UNSUCCESSFUL_CONNECTION = "ARGUMENT_UNSUCCESSFUL_CONNECTION";
 
@@ -48,23 +48,23 @@ public class SettingsFragment extends PreferenceFragment
 
             String value = sharedPreferences.getString(key, "");
 
-            if (key.equals(SETTING_IP_ADDRESS_PORT_KEY))
+            if (key.equals(SETTING_HOST_PORT_KEY))
             {
                 if (value.length() == 0)
                 {
-                    value = SETTING_IP_ADDRESS_PORT_VALUE_DEFAULT;
+                    value = SETTING_HOST_PORT_VALUE_DEFAULT;
                     SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString(SETTING_IP_ADDRESS_PORT_KEY, value);
+                    editor.putString(SETTING_HOST_PORT_KEY, value);
                     editor.apply();
                 }
 
-                int portIntValue = SETTING_IP_ADDRESS_PORT_VALUE_DEFAULT_INT;
+                int portIntValue = SETTING_HOST_PORT_VALUE_DEFAULT_INT;
 
                 try {
                     portIntValue = Integer.parseInt(value);
                     if (portIntValue < 0)
                     {
-                        portIntValue = SETTING_IP_ADDRESS_PORT_VALUE_DEFAULT_INT;
+                        portIntValue = SETTING_HOST_PORT_VALUE_DEFAULT_INT;
                     }
                 }
                 catch (NumberFormatException ignored) {}
@@ -72,7 +72,7 @@ public class SettingsFragment extends PreferenceFragment
                 BaseApplication.jedisPort = portIntValue;
             }
 
-            if (key.equals(SETTING_IP_ADDRESS_KEY))
+            if (key.equals(SETTING_HOST_KEY))
             {
                 BaseApplication.jedisHost = value;
             }
@@ -92,8 +92,8 @@ public class SettingsFragment extends PreferenceFragment
         prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         prefs.registerOnSharedPreferenceChangeListener(mListener);
 
-        mListener.onSharedPreferenceChanged(prefs, SETTING_IP_ADDRESS_KEY);
-        mListener.onSharedPreferenceChanged(prefs, SETTING_IP_ADDRESS_PORT_KEY);
+        mListener.onSharedPreferenceChanged(prefs, SETTING_HOST_KEY);
+        mListener.onSharedPreferenceChanged(prefs, SETTING_HOST_PORT_KEY);
         mListener.onSharedPreferenceChanged(prefs, SETTING_GENERATE_MESSAGES_KEY);
 
         if (getArguments() != null && getArguments().containsKey(ARGUMENT_UNSUCCESSFUL_CONNECTION))
@@ -113,7 +113,7 @@ public class SettingsFragment extends PreferenceFragment
 
         if (unsuccessfulConnection)
         {
-            errors.add("Jedis connection might not be available, please check host and port.");
+            errors.add(getString(R.string.setting_fragment_connection_unavailable));
         }
 
         String allErrors = "";
@@ -144,21 +144,21 @@ public class SettingsFragment extends PreferenceFragment
         List<String> errors = new ArrayList<>();
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(ctx);
-        String ipAddress = sharedPreferences.getString(SettingsFragment.SETTING_IP_ADDRESS_KEY, "");
-        String port = sharedPreferences.getString(SettingsFragment.SETTING_IP_ADDRESS_PORT_KEY, SettingsFragment.SETTING_IP_ADDRESS_PORT_VALUE_DEFAULT);
+        String host = sharedPreferences.getString(SettingsFragment.SETTING_HOST_KEY, "");
+        String port = sharedPreferences.getString(SettingsFragment.SETTING_HOST_PORT_KEY, SettingsFragment.SETTING_HOST_PORT_VALUE_DEFAULT);
 
         if (port.length() == 0)
         {
-            port = SettingsFragment.SETTING_IP_ADDRESS_PORT_VALUE_DEFAULT;
+            port = SettingsFragment.SETTING_HOST_PORT_VALUE_DEFAULT;
         }
 
-        if (ipAddress.length() == 0)
+        if (host.length() == 0)
         {
-            errors.add("IP Address must be supplied and not empty.");
+            errors.add(ctx.getString(R.string.setting_fragment_host_must_be_present));
         }
         else
         {
-            BaseApplication.jedisHost = ipAddress;
+            BaseApplication.jedisHost = host;
         }
 
         try {
@@ -166,7 +166,7 @@ public class SettingsFragment extends PreferenceFragment
             if (portAsNumber < 0)
             {
                 // Negative port number?
-                errors.add("Port number must not be negative.");
+                errors.add(ctx.getString(R.string.setting_fragment_negative_port));
             }
             else
             {
@@ -175,10 +175,18 @@ public class SettingsFragment extends PreferenceFragment
         }
         catch (NumberFormatException ex)
         {
-            errors.add("Port must be a number.");
+            errors.add(ctx.getString(R.string.setting_fragment_port_not_a_number));
         }
 
         return errors;
+    }
+
+    public void setErrorText(int stringResourceId)
+    {
+        if (errorBox != null)
+        {
+            errorBox.setText(stringResourceId);
+        }
     }
 
     public void setErrorText(String message)

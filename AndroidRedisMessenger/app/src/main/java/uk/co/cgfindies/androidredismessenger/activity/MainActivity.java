@@ -319,7 +319,8 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
     private class MessageAdapter extends ArrayAdapter<MessageDetails>
     {
 
-        public MessageAdapter(Context ctx) {
+        public MessageAdapter(Context ctx)
+        {
             super(ctx, R.layout.list_item, new ArrayList<MessageDetails>());
         }
 

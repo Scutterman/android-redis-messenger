@@ -10,15 +10,16 @@ import org.droidparts.activity.support.v7.AppCompatActivity;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
+import uk.co.cgfindies.androidredismessenger.R;
 import uk.co.cgfindies.androidredismessenger.fragment.SettingsFragment;
 import uk.co.cgfindies.androidredismessenger.storage.JedisProvider;
 
 public class SettingsActivity extends AppCompatActivity
 {
-
     public static Intent getIntent(Context ctx) {
         return new Intent(ctx, SettingsActivity.class);
     }
+
     private SettingsFragment settingsFragment;
 
     @Override
@@ -49,7 +50,7 @@ public class SettingsActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                settingsFragment.setErrorText("Testing Connection...");
+                settingsFragment.setErrorText(R.string.setting_fragment_testing_connection);
                 new Thread(new TestJedisConnectionSettings()).start();
                 return true;
             default:
@@ -89,7 +90,7 @@ public class SettingsActivity extends AppCompatActivity
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    settingsFragment.setErrorText("Jedis connection might not be available, please check host and port.");
+                    settingsFragment.setErrorText(R.string.setting_fragment_connection_unavailable);
                 }
             });
         }

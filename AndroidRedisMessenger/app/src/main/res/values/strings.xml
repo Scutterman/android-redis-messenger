@@ -22,9 +22,12 @@
 
     <!-- Strings related to Settings -->
     <string name="setting_generate_messages_title">Generate Messages</string>
-    <string name="setting_ip_address_title">Ip Address</string>
-    <string name="setting_ip_address_port_title">Port</string>
+    <string name="setting_host_title">Host</string>
+    <string name="setting_host_port_title">Port</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="setting_fragment_testing_connection">Testing Connection&#8230;</string>
+    <string name="setting_fragment_connection_unavailable">Jedis connection might not be available, please check host and port.</string>
+    <string name="setting_fragment_host_must_be_present">Host must be supplied and not empty.</string>
+    <string name="setting_fragment_negative_port">Port number must not be negative.</string>
+    <string name="setting_fragment_port_not_a_number">Port must be a number.</string>
 </resources>
