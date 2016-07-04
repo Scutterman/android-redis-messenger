@@ -31,7 +31,6 @@ public class JedisProvider
         if (jedis == null || !jedis.isConnected())
         {
             instancesProvided = 0;
-            L.w(BaseApplication.jedisHost + ":" + Integer.toString(BaseApplication.jedisPort));
             jedis = new Jedis(BaseApplication.jedisHost, BaseApplication.jedisPort);
         }
 
@@ -88,7 +87,6 @@ public class JedisProvider
         try
         {
             jedis = JedisProvider.getInstance().getJedisInstance();
-            L.w("Connection!");
             iface.doThis(jedis);
         }
         catch (JedisConnectionException e)
@@ -98,7 +96,6 @@ public class JedisProvider
                 hncInterface.handleNoConnection();
             }
 
-            L.w("No Connection!");
         }
         catch (Exception ex)
         {

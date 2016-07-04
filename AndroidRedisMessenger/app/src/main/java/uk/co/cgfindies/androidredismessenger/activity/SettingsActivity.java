@@ -7,9 +7,9 @@ import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
 
 import org.droidparts.activity.support.v7.AppCompatActivity;
-import org.droidparts.util.L;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 import uk.co.cgfindies.androidredismessenger.fragment.SettingsFragment;
 import uk.co.cgfindies.androidredismessenger.storage.JedisProvider;
 
@@ -50,7 +50,6 @@ public class SettingsActivity extends AppCompatActivity
         switch (item.getItemId()) {
             case android.R.id.home:
                 settingsFragment.setErrorText("Testing Connection...");
-                L.w("Testing Connection...");
                 new Thread(new TestJedisConnectionSettings()).start();
                 return true;
             default:
@@ -64,8 +63,24 @@ public class SettingsActivity extends AppCompatActivity
         @Override
         public void doThis(Jedis jedis)
         {
-            L.w("Connection after test.");
-            finish();
+            try
+            {
+                jedis.ping();
+                // If ping doesn't cause a connection exception, we can assume the connection is good.
+                // Technically, we don't need to do all this try/catch/handle stuff here, because it's done in JedisProvider.doThis
+                // But this is an important piece of code so legibility and understandability matter.
+                finish();
+            }
+            catch (JedisConnectionException ex)
+            {
+                handleNoConnection();
+            }
+            finally
+            {
+                if (jedis != null) {
+                    jedis.close();
+                }
+            }
         }
 
         @Override
@@ -75,7 +90,6 @@ public class SettingsActivity extends AppCompatActivity
                 @Override
                 public void run() {
                     settingsFragment.setErrorText("Jedis connection might not be available, please check host and port.");
-                    L.w("No Connection after test.");
                 }
             });
         }

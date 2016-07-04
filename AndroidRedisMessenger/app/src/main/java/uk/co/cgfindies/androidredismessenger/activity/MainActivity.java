@@ -21,7 +21,6 @@ import org.droidparts.activity.support.v7.AppCompatActivity;
 import org.droidparts.adapter.widget.ArrayAdapter;
 import org.droidparts.annotation.inject.InjectDependency;
 import org.droidparts.annotation.inject.InjectView;
-import org.droidparts.util.L;
 import org.droidparts.util.ui.ViewUtils;
 import org.droidparts.widget.ClearableEditText;
 
@@ -54,6 +53,8 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
     private Button addMessageButton;
     private boolean uiAvailable;
 
+    private boolean redirectedAfterNoConnection = false;
+
     @Override
     protected void onPreInject()
     {
@@ -73,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
     protected void onResume()
     {
         super.onResume();
+        redirectedAfterNoConnection = false;
         adapter = new MessageAdapter(this);
         list.setAdapter(adapter);
 
@@ -83,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
     protected void onPause()
     {
         super.onPause();
-        L.w("Pause");
+
         if (rmr != null)
         {
             rmr.close();
@@ -307,8 +309,11 @@ public class MainActivity extends AppCompatActivity implements GetMessageRunnabl
 
     public void handleNoConnection()
     {
-        L.w("Redirecting...");
-        redirectToSettings(true);
+        if (!redirectedAfterNoConnection)
+        {
+            redirectedAfterNoConnection = true;
+            redirectToSettings(true);
+        }
     }
 
     private class MessageAdapter extends ArrayAdapter<MessageDetails>
